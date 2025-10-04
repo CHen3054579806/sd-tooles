@@ -7,7 +7,7 @@ LOCAL_VERSION="1.0.2"  # 已更新到1.0.2版本
 # 2. GitHub仓库信息（已匹配你的仓库）
 GITHUB_REPO_OWNER="CHen3054579806"
 GITHUB_REPO_NAME="sd-tooles"
-GITHUB_BRANCH="main"
+GITHUB_BRANCH="1.0.3"
 # 3. GitHub上脚本的原始文件URL
 GITHUB_SCRIPT_URL="https://raw.githubusercontent.com/$GITHUB_REPO_OWNER/$GITHUB_REPO_NAME/$GITHUB_BRANCH/$(basename "$0")"
 # 4. 备份文件后缀（更新失败时恢复）
