@@ -3,11 +3,11 @@
 # 安全说明：脚本已通过shc混淆，禁止倒卖，违者必究
 # -------------------------- 新增：自动更新配置 --------------------------
 # 1. 本地脚本版本（需与GitHub仓库版本同步更新）
-LOCAL_VERSION="1.0.2"  # 已更新到1.0.2版本
+LOCAL_VERSION="1.0.4"  # 已更新到1.0.4版本，修复更新问题
 # 2. GitHub仓库信息（已匹配你的仓库）
 GITHUB_REPO_OWNER="CHen3054579806"
 GITHUB_REPO_NAME="sd-tooles"
-GITHUB_BRANCH="1.0.3"
+GITHUB_BRANCH="main"
 # 3. GitHub上脚本的原始文件URL
 GITHUB_SCRIPT_URL="https://raw.githubusercontent.com/$GITHUB_REPO_OWNER/$GITHUB_REPO_NAME/$GITHUB_BRANCH/$(basename "$0")"
 # 4. 备份文件后缀（更新失败时恢复）
@@ -49,7 +49,7 @@ check_update_deps() {
 
 # 2. 获取GitHub最新版本（优先读Release Tag，失败则读分支内的VERSION文件）
 get_github_latest_version() {
-    local timeout=10
+    local timeout=15  # 增加超时时间
     # 方式1：从GitHub Release获取最新Tag
     local latest_version=$(curl -s --max-time $timeout "https://api.github.com/repos/$GITHUB_REPO_OWNER/$GITHUB_REPO_NAME/releases/latest" | grep -o '"tag_name": ".*"' | sed 's/"tag_name": "//;s/"//')
 
@@ -137,32 +137,54 @@ auto_update() {
         return 1
     fi
 
-    # 步骤6：下载最新脚本并替换（增加详细错误输出）
+    # 步骤6：下载最新脚本并替换（修复版）
     dialog --infobox "正在下载新版本（v$github_version）..." 6 40
-    curl -L --show-error --fail "$GITHUB_SCRIPT_URL" -o "$0.tmp" 2>/tmp/update_error.log
-
-    # 校验下载文件是否有效（非空且是bash脚本）
-    if [ ! -s "$0.tmp" ] || ! grep -q "#!/bin/bash" "$0.tmp" 2>/dev/null; then
+    
+    # 关键修复：添加--no-cache参数防止缓存，增加详细输出
+    if ! curl -L --show-error --fail --no-cache "$GITHUB_SCRIPT_URL" -o "$0.tmp" 2>/tmp/update_error.log; then
         local error_log=$(cat /tmp/update_error.log)
-        dialog --msgbox "下载失败！错误信息：\n$error_log\n已恢复原脚本\n\n请检查：\n1. GitHub仓库地址是否正确\n2. 网络连接是否正常\n3. 脚本文件名是否一致" 12 60
+        dialog --msgbox "下载失败！错误信息：\n$error_log\n已恢复原脚本" 12 60
         mv "$backup_file" "$0" 2>/dev/null  # 恢复备份
         rm -f "$0.tmp" /tmp/update_error.log
         return 1
     fi
 
-    # 步骤7：替换脚本并添加执行权限
+    # 校验下载文件是否有效（增强版）
+    if [ ! -s "$0.tmp" ] || ! grep -q "#!/bin/bash" "$0.tmp" 2>/dev/null; then
+        local file_size=$(du -h "$0.tmp" 2>/dev/null | cut -f1)
+        dialog --msgbox "下载的文件无效！\n文件大小: $file_size\n可能是网络问题或文件被篡改" 10 60
+        mv "$backup_file" "$0" 2>/dev/null  # 恢复备份
+        rm -f "$0.tmp" /tmp/update_error.log
+        return 1
+    fi
+
+    # 步骤7：替换脚本并添加执行权限（关键修复）
     chmod +x "$0.tmp"  # 确保新脚本可执行
-    mv "$0.tmp" "$0" 2>/dev/null
-    if [ $? -ne 0 ]; then
-        dialog --msgbox "更新替换失败，已恢复原脚本" 6 40
+    
+    # 关键修复：使用cp + rm代替mv，解决文件占用问题
+    if ! cp "$0.tmp" "$0" 2>/tmp/update_error.log; then
+        local error_log=$(cat /tmp/update_error.log)
+        dialog --msgbox "更新替换失败！错误信息：\n$error_log\n已恢复原脚本" 12 60
+        mv "$backup_file" "$0" 2>/dev/null
+        rm -f "$0.tmp" /tmp/update_error.log
+        return 1
+    fi
+    rm -f "$0.tmp"  # 清理临时文件
+
+    # 步骤8：验证更新是否成功
+    local new_version=$(grep "LOCAL_VERSION=" "$0" | head -n1 | sed 's/LOCAL_VERSION="//;s/"//' | sed 's/^v//')
+    if [ "$new_version" != "$github_version" ]; then
+        dialog --msgbox "更新验证失败！版本不匹配\n预期: $github_version, 实际: $new_version\n已恢复原脚本" 10 60
         mv "$backup_file" "$0" 2>/dev/null
         return 1
     fi
 
-    # 步骤8：提示更新成功并重启脚本
+    # 步骤9：提示更新成功并重启脚本（增强版）
     dialog --msgbox "更新成功！已升级至v$github_version\n脚本将自动重启" 6 40
     rm -f /tmp/update_error.log  # 清理临时文件
-    exec "$0" "$@"  # 重启脚本，应用新版本
+    
+    # 关键修复：使用更可靠的重启方式
+    exec bash "$0" "$@"  # 明确使用bash执行，确保重启
 }
 
 # 密码存储核心函数（保持不变）
