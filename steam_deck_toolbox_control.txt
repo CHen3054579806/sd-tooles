@@ -1,0 +1,34 @@
+# Steam Deck工具箱远程控制配置文件
+# 格式说明：模块用【】标识，参数用"键=值"格式，空行分隔模块，#为注释
+# 注意：仅需修改【VERSION_CONTROL】中的UPDATE_URL为你的新脚本Raw链接，其他参数可直接使用
+
+
+【VERSION_CONTROL】
+# 最新版本号（需比脚本内VERSION高，当前脚本版本为1.0.5，此处设为1.0.6）
+LATEST_VERSION=1.0.6
+# 替换为：你上传的「最新版工具箱脚本」的Raw链接（例：https://raw.githubusercontent.com/你的用户名/仓库名/main/steam_deck_toolbox.sh）
+UPDATE_URL=https://raw.githubusercontent.com/CHen3054579806/sd-tooles/main/steam_deck_toolbox.sh
+# 更新说明（简短描述当前最新版本的更新内容）
+UPDATE_DESC=1.新增远程TXT控制功能（版本对比+在线公告+运行权限）；2.修复原公告显示HTML代码问题；3.优化启动流程稳定性
+
+
+【ONLINE_ANNOUNCEMENT】
+# 公告标题（可自定义，如版本更新通知、功能说明等）
+TITLE=Steam Deck工具箱1.0.6版本更新通知
+# 公告内容（支持多行，每行前加"CONTENT="，可根据需求增删行）
+CONTENT=各位用户：
+CONTENT=1.本次更新新增「远程控制」核心功能，可通过此配置文件实现3大能力：
+CONTENT=   - 自动对比版本，一键更新到最新版；
+CONTENT=   - 实时获取线上公告，无需修改脚本；
+CONTENT=   - 管理员可远程开关工具运行权限；
+CONTENT=2.使用提示：若更新失败，可手动访问UPDATE_URL下载最新脚本；
+CONTENT=3.反馈建议：通过工具箱「反馈Bug」选项联系作者（QQ：3054579806）。
+# 公告发布时间（格式：年-月-日 时:分，可自定义）
+PUBLISH_TIME=2024-10-09 10:00
+
+
+【RUN_CONTROL】
+# 运行权限开关（仅支持2个值：ENABLED=允许运行，DISABLED=禁止运行）
+STATUS=ENABLED
+# 禁用原因（仅当STATUS=DISABLED时生效，例："当前版本存在安全漏洞，暂禁用，请等待1.0.7版本"）
+DISABLE_REASON=
